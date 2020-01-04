@@ -1,4 +1,5 @@
-﻿using ArmyVkAPI.Interfaces;
+﻿using ArmyVkAPI.Events;
+using ArmyVkAPI.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace ArmyVkAPI.Realisations
 {
     class AuthorizationLogic : IAuthorization
     {
-        public event EventHandler AuthSuccessful;
+        public event EventHandler<MyEventArgs> AuthSuccessful;
 
         /// <summary>
         /// Авторизация пользователя
@@ -22,19 +23,28 @@ namespace ArmyVkAPI.Realisations
         /// <returns>Уникальный токен для работы с сервисом</returns>
         public VkApi AuthorizationUser(string login, string password)
         {
-            var api = new VkApi();
-
-            api.Authorize(new ApiAuthParams
+            try
             {
-                ApplicationId = 123456,
-                Login = login,
-                Password = password,
-                Settings = Settings.All
-            });
+                var api = new VkApi();
 
-            AuthSuccessful?.Invoke(this, new EventArgs());
+                api.Authorize(new ApiAuthParams
+                {
+                    ApplicationId = 123456,
+                    Login = login,
+                    Password = password,
+                    Settings = Settings.All
+                });
 
-            return api;
+                // Если авторизация успешна, то сообщи об этом подписчикам
+                if (api != null)
+                    AuthSuccessful?.Invoke(this, new MyEventArgs(api));
+
+                return api;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

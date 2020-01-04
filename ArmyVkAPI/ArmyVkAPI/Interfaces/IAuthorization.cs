@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ArmyVkAPI.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +8,7 @@ using VkNet;
 
 namespace ArmyVkAPI.Interfaces
 {
-    public interface IAuthorization
+    internal interface IAuthorization
     {
         /// <summary>
         /// Авторизация пользователя
@@ -18,6 +19,6 @@ namespace ArmyVkAPI.Interfaces
         VkApi AuthorizationUser(string login, string password);
 
 
-        event EventHandler AuthSuccessful;
+        event EventHandler<MyEventArgs> AuthSuccessful;
     }
 }

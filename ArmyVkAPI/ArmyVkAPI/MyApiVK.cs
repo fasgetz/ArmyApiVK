@@ -1,4 +1,5 @@
-﻿using ArmyVkAPI.Interfaces;
+﻿using ArmyVkAPI.Events;
+using ArmyVkAPI.Interfaces;
 using ArmyVkAPI.Realisations;
 using System;
 using System.Collections.Generic;
@@ -15,8 +16,8 @@ namespace ArmyVkAPI
         #region Свойства
 
         private VkApi token; // Токен
-        public IAuthorization AuthLogic;
-        UsersLogic logic;
+        private IAuthorization AuthLogic; // Логика авторизации
+        public IUserLogic UserLogic;
 
         #endregion
 
@@ -24,17 +25,33 @@ namespace ArmyVkAPI
         {
             AuthLogic = new AuthorizationLogic();
 
+            // Подписываемся на событие для успешной авторизации
             AuthLogic.AuthSuccessful += AuthLogic_AuthSuccessful;
         }
 
+
+        #region События
+
         /// <summary>
-        /// Подписываемся на событие после авторизации
+        /// Выполняем метод, если авторизация успешна
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void AuthLogic_AuthSuccessful(object sender, EventArgs e)
+        private void AuthLogic_AuthSuccessful(object sender, MyEventArgs e)
         {
-            logic = new UsersLogic(token);
+            // Выделяем память остальной логике для работы с сервисом ВК
+            token = e.GetToken();
+            UserLogic = new UsersLogic(token);    
+        }
+
+        #endregion
+
+        // Метод авторизации
+        public bool Authorization(string login, string password)
+        {
+            token = AuthLogic.AuthorizationUser(login, password);
+
+            return token != null ? true : false;
         }
     }
 }
