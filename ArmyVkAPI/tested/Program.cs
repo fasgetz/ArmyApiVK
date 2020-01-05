@@ -17,13 +17,17 @@ namespace tested
 
 
 
-            var users = api.UserLogic.GetForeignFriends(97247755);
-            
-            foreach (var user in users)
-            {
-                Console.WriteLine($"https://vk.com/id{user.Id} {user.FirstName} {user.LastName} {user.Country?.Title} {user.City?.Title} {user.Military?.Unit}");
-            }
+            //var users = api.UserLogic.GetUserHasFriendsUS(97247755);
 
+            //foreach (var user in users)
+            //{
+            //    Console.WriteLine($"https://vk.com/id{user.Id} {user.FirstName} {user.LastName} {user.Country?.Title} {user.City?.Title} {user.Military?.Unit}\n {user.PhotoMaxOrig.AbsoluteUri}");
+            //}
+
+
+            var user = api.UserLogic.GetUser(189251970);
+
+            Console.WriteLine($"{user.Id} {user.BirthDate} online: {user.LastSeen?.Time}");
 
             Console.ReadKey();
         }
