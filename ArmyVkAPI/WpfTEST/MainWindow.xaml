@@ -7,11 +7,16 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="3*"/>
-            <RowDefinition Height="7*"/>
-        </Grid.RowDefinitions>
-        <Button Click="Button_Click"/>
-        <Image x:Name="img" Source="https://sun9-34.userapi.com/c205224/v205224765/2b43d/RS39MiV9Jo4.jpg?ava=1" Grid.Row="1"/>
+        <StackPanel>
+            <Menu DockPanel.Dock="Top" MinHeight="25">
+                <MenuItem Header="File" />
+                <MenuItem Header="Edit">
+                    <MenuItem Header="Copy" CommandTarget="{Binding ElementName=txtBox}" Command="Copy"/>
+                    <MenuItem Header="Paste" CommandTarget="{Binding ElementName=txtBox}" Command="Paste"/>
+                </MenuItem>
+            </Menu>
+            <TextBox x:Name="txtBox" />
+            <Button x:Name="button" Height="40" Click="Button_Click"/>
+        </StackPanel>
     </Grid>
 </Window>

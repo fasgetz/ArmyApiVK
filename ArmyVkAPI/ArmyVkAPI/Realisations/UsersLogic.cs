@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using VkNet;
 using VkNet.Enums.Filters;
@@ -31,16 +30,54 @@ namespace ArmyVkAPI.Realisations
         /// <returns>Массив иностранных друзей</returns>
         public User[] GetForeignFriends(int VK_ID)
         {
+
+            List<User> list = new List<User>();
+
             // Получаем список иностранных друзей
-            return token.Friends.Get(new VkNet.Model.RequestParams.FriendsGetParams()
+            foreach (var user in token.Friends.Get(new VkNet.Model.RequestParams.FriendsGetParams()
             {
                 UserId = VK_ID,
                 Count = 10000,
                 Fields = ProfileFields.All
-            }).Where(i => i.Country != null && i.Country?.Id != 1).ToArray();
+            }).Where(i => i.Country != null && i.Country?.Id != 1).ToArray())
+            {
+                list.Add(user);
+            }
 
-            // 
+            return list.ToArray();
+        }
 
+        /// <summary>
+        /// Получить список друзей пользователя
+        /// </summary>
+        /// <param name="VK_ID">Айди пользователя ВК</param>
+        /// /// <param name="allData">Полная информация</param>
+        /// <returns>Массив друзей</returns>
+        public User[] GetFriendsUser(int VK_ID, bool allData = true)
+        {
+
+            // Формируем запрос
+            var request = new VkNet.Model.RequestParams.FriendsGetParams()
+            {
+                UserId = VK_ID,
+                Count = 10000,
+            };
+
+            switch (allData)
+            {
+                // Если true, то вернуть всю информацию
+                case (true):
+                    request.Fields = ProfileFields.All;
+                    break;
+                case (false):
+                    //request.Fields = ProfileFields.;
+                    break;
+                default:
+                    break;
+            }
+
+            // Вернуть полный список друзей пользователя
+            return token.Friends.Get(request).ToArray();
         }
 
         /// <summary>
@@ -50,13 +87,11 @@ namespace ArmyVkAPI.Realisations
         /// <returns>Возвращает информацию о пользователе</returns>
         public User GetUser(int VK_ID)
         {
-            var user = token.Users.Get(new long[]
+
+            return token.Users.Get(new long[]
             {
                 VK_ID
             }, VkNet.Enums.Filters.ProfileFields.All).FirstOrDefault();
-
-
-            return user;
         }
 
 
@@ -76,33 +111,138 @@ namespace ArmyVkAPI.Realisations
             }).ToArray();
 
 
-            List<User> users = new List<User>();
+            List<User> usersHaveUS = new List<User>();
 
             // Теперь проходимся по массиву и делаем список людей, которые имеют В/Ч на странице
             Parallel.For(0, friends.Length / 10, (int i) =>
             {
                 for (int s = i * 10; s < (i + 1) * 10; s++)
                 {
-                    // Инфа о юзере
-                    var user = token.Users.Get(new long[]
+                    try
                     {
+                        // Инфа о юзере
+                        var user = token.Users.Get(new long[]
+                        {
                                 friends[s].Id
-                    }, VkNet.Enums.Filters.ProfileFields.All).FirstOrDefault();
+                        }, VkNet.Enums.Filters.ProfileFields.All).FirstOrDefault();
 
-                    // Если такого юзера нашли, то добавь его в список
-                    if (user.Military != null)
-                    {
-                        Console.WriteLine($"{user.Id} {user.FirstName} {user.LastName} {user.Country?.Title} {user.City?.Title} {user.Military?.Unit}");
-                        users.Add(user);
+                        // Если такого юзера нашли, то добавь его в список пользователей, которые имеют В/Ч
+                        if (user.Military != null)
+                        {
+                            usersHaveUS.Add(user);
+                            Console.BackgroundColor = ConsoleColor.Green;
+                            Console.WriteLine($"{user.Id}) {user.FirstName} {user.LastName} - {user.Country?.Title} имеет вч");
+                        }
+                            
+                        // Иначе можно добавить в список пользователей, которые не имеют В/Ч
+                        else
+                        {
+                            Console.BackgroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"{user.Id}) {user.FirstName} {user.LastName} - {user.Country?.Title} не имеет вч");
+                        }
                     }
-                    else
-                        Console.WriteLine($"Не имеет В/Ч {user.Id} {user.FirstName} {user.LastName}");
+                    catch (Exception)
+                    {
+                        
+                    }
+
+                        
+
 
                 }
             });
 
-            return users.ToArray();
+            return usersHaveUS.ToArray();
 
+        }
+
+
+
+        /// <summary>
+        /// Вторая версия метода, в параметры которого, по ссылке, передаются коллекции для формирования в реальном времени результатов
+        /// </summary>
+        /// <param name="VK_ID">Айди пользователя ВК</param>
+        /// <param name="UsersHasUS">Список пользователей, которые имеют В/Ч на странице</param>
+        /// <param name="UsersDontHasUS">Список пользователей, которые не имеют В/Ч на странице</param>
+        /// <returns>Возвращает true, если поиск закончен, иначе false</returns>
+        public ICollection<User> GetUserHasFriendsUS(int VK_ID, ICollection<User> UsersHasUS, ICollection<User> UsersDontHasUS)
+        {
+            try
+            {
+                // Получаем полный список друзей
+                var friends = token.Friends.Get(new VkNet.Model.RequestParams.FriendsGetParams()
+                {
+                    UserId = VK_ID,
+                    Count = 10000,
+                    Fields = ProfileFields.Military // Настройка
+                }).ToArray();
+
+
+
+
+                // Теперь проходимся по массиву и делаем список людей, которые имеют В/Ч на странице
+                Parallel.For(0, friends.Length / 10, (int i) =>
+                {
+                    for (int s = i * 10; s < (i + 1) * 10; s++)
+                    {
+                        try
+                        {
+                            // Инфа о юзере
+                            var user = token.Users.Get(new long[]
+                            {
+                                friends[s].Id
+                            }, VkNet.Enums.Filters.ProfileFields.All).FirstOrDefault();
+
+                            // Если такого юзера нашли, то добавь его в список пользователей, которые имеют В/Ч
+                            if (user.Military != null)
+                            {
+                                UsersHasUS.Add(new User());
+                            }
+                            // Иначе можно добавить в список пользователей, которые не имеют В/Ч
+                            else
+                                UsersHasUS.Add(new User());
+
+
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+
+
+
+
+                    }
+                });
+
+
+            }
+            catch (Exception)
+            {
+                // Если случилась какая-то ошибка, то верни false
+                return null;
+            }
+
+            return UsersHasUS;
+
+        }
+
+        /// <summary>
+        /// Имеет ли пользователь воинскую часть
+        /// </summary>
+        /// <param name="user">Пользователь</param>
+        /// <returns>Возвращает true, если имеет, иначе false</returns>
+        public bool UserHasUnitSoldier(User user)
+        {
+            // Инфа о юзере
+            var findUser = token.Users.Get(new long[]
+            {
+                user.Id
+            }, VkNet.Enums.Filters.ProfileFields.Military).FirstOrDefault();
+
+
+            // Если пользователь имеет В/Ч, то вернуть true, иначе false
+            return findUser.Military != null ? true : false;
         }
     }
 }

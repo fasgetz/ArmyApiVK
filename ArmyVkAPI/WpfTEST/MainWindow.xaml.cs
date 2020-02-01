@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Awesomium.Core;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,16 +27,59 @@ namespace WpfTEST
         public MainWindow()
         {
             InitializeComponent();
+
+            //pan1.Items.Add(tabitem);
+
         }
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            var myimg = ByteToImage(await DownloadImageFromWebsiteAsync("https://sun9-63.userapi.com/c5231/u64641839/a_b11f50a2.jpg?ava=1"));
+            //var myimg = ByteToImage(await DownloadImageFromWebsiteAsync("https://sun9-63.userapi.com/c5231/u64641839/a_b11f50a2.jpg?ava=1"));
 
-            if (myimg != null)
-                img.Source = myimg;
+            //if (myimg != null)
+            //{
+            //    img.Source = myimg;
+            //}
+
+            //button.IsEnabled = false;
+            //webView = WebCore.CreateWebView(1920, 1080);
+            //webView.Source = new Uri("http://www.google.com");
+            //webView.LoadingFrameComplete += WebView_LoadingFrameComplete;
+            ////webView.LoadingFrameComplete += (s, e) =>
+            ////{
+
+            ////};
+
+            //WebCore.Run();
+            //webView.Dispose();
+
+            //button.IsEnabled = true;
 
 
+            Task t = new Task(() =>
+            {
+                WebCore.Initialize(new WebConfig(), true);
+                webView = WebCore.CreateWebView(1920, 1080, WebViewType.Window);
+                webView.LoadingFrameComplete += WebView_LoadingFrameComplete;
+                webView.Source = new Uri("https://my.mail.ru/mail/summer.68/video/_myvideo/37.html");
+                WebCore.Run();
+            });
+            t.Start();
+
+
+        }
+
+        WebView webView;
+        private void WebView_LoadingFrameComplete(object sender, FrameEventArgs e)
+        {
+            if (!e.IsMainFrame)
+                return;
+            BitmapSurface surface = (BitmapSurface)webView.Surface;
+            surface.SaveToPNG("result.png", true);
+
+            WebCore.Shutdown();
+
+            MessageBox.Show("end");
         }
 
         private async Task<byte[]> DownloadImageFromWebsiteAsync(string url)
@@ -47,10 +91,7 @@ namespace WpfTEST
                     Thread.Sleep(3000);
                     WebClient w = new WebClient();
                     byte[] imageData = w.DownloadData(url);
-
-                    WebRequest req = WebRequest.Create(url);
-                    WebResponse response = req.GetResponse();
-                    Stream stream = response.GetResponseStream();                    
+                 
 
                     return imageData;
                 });
@@ -83,6 +124,11 @@ namespace WpfTEST
                 return null;
             }
 
+        }
+
+        private void Canvas_MouseEnter(object sender, MouseEventArgs e)
+        {
+            MessageBox.Show("test");
         }
     }
 }
