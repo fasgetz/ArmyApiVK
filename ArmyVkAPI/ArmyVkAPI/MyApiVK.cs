@@ -1,6 +1,7 @@
 ﻿using ArmyVkAPI.Events;
 using ArmyVkAPI.Interfaces;
 using ArmyVkAPI.Realisations;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,9 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using VkNet;
+using VkNet.AudioBypassService.Extensions;
+using VkNet.Enums.Filters;
+using VkNet.Model;
 
 namespace ArmyVkAPI
 {
@@ -15,18 +19,19 @@ namespace ArmyVkAPI
     {
         #region Свойства
 
+        public event EventHandler<MyEventArgs> AuthSuccessful;
         private VkApi token; // Токен
-        private IAuthorization AuthLogic; // Логика авторизации
-        public IUserLogic UserLogic;
+        public IUserLogic UserLogic { get; private set; }
+        public IGroupLogic GroupLogic { get; private set; }
 
         #endregion
 
         public MyApiVK()
         {
-            AuthLogic = new AuthorizationLogic();
+            //AuthLogic = new AuthorizationLogic();
 
             // Подписываемся на событие для успешной авторизации
-            AuthLogic.AuthSuccessful += AuthLogic_AuthSuccessful;
+            AuthSuccessful += AuthLogic_AuthSuccessful;
         }
 
 
@@ -40,8 +45,9 @@ namespace ArmyVkAPI
         private void AuthLogic_AuthSuccessful(object sender, MyEventArgs e)
         {
             // Выделяем память остальной логике для работы с сервисом ВК
-            token = e.GetToken();
-            UserLogic = new UsersLogic(token);    
+            //token = e.GetToken();
+            UserLogic = new UsersLogic(token);
+            GroupLogic = new GroupLogic(token);
         }
 
         #endregion
@@ -49,9 +55,35 @@ namespace ArmyVkAPI
         // Метод авторизации
         public bool Authorization(string login, string password)
         {
-            token = AuthLogic.AuthorizationUser(login, password);
+            var services = new ServiceCollection();
+            services.AddAudioBypass();
+            token = new VkApi(services);
+            token.Authorize(new ApiAuthParams
+            {
+                ApplicationId = 123456,
+                Login = login,
+                Password = password,
+                Settings = Settings.All
+            });
+            //token = AuthLogic.AuthorizationUser(login, password);
 
-            return token != null ? true : false;
+            // Если авторизация успешна, то сообщи об этом подписчикам
+            if (token.IsAuthorized)
+                AuthSuccessful?.Invoke(this, new MyEventArgs(token));
+
+            return token.IsAuthorized;
+        }
+
+        /// <summary>
+        /// Авторизован ли пользователь
+        /// </summary>
+        /// <returns>True, если пользователь авторизован</returns>
+        public bool IsAuth()
+        {
+            //if (token == null)
+            //    return false;
+
+            return token.IsAuthorized;
         }
     }
 }

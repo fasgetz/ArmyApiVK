@@ -24,11 +24,12 @@ namespace ArmyVkAPI.Realisations
         }
 
         /// <summary>
-        /// Получить иностранных друзей пользователя ВК
+        /// Получить друзей пользователя ВК
         /// </summary>
         /// /// <param name="VK_ID">Айди пользователя ВК</param>
+        /// /// <param name="Foreign">Если стоит по умолчанию 1, то только иностранных. Если 0, то все страны</param>
         /// <returns>Массив иностранных друзей</returns>
-        public User[] GetForeignFriends(int VK_ID)
+        public User[] GetForeignFriends(int VK_ID, int Foreign = 1)
         {
 
             List<User> list = new List<User>();
@@ -39,7 +40,7 @@ namespace ArmyVkAPI.Realisations
                 UserId = VK_ID,
                 Count = 10000,
                 Fields = ProfileFields.All
-            }).Where(i => i.Country != null && i.Country?.Id != 1).ToArray())
+            }).Where(i => i.Country != null && i.Country?.Id != Foreign).ToArray())
             {
                 list.Add(user);
             }
@@ -48,7 +49,7 @@ namespace ArmyVkAPI.Realisations
         }
 
         /// <summary>
-        /// Получить список друзей пользователя
+        /// Получить весь список друзей пользователя
         /// </summary>
         /// <param name="VK_ID">Айди пользователя ВК</param>
         /// /// <param name="allData">Полная информация</param>

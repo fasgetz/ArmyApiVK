@@ -7,7 +7,7 @@ using VkNet;
 
 namespace ArmyVkAPI.Events
 {
-    class MyEventArgs : EventArgs
+    public class MyEventArgs : EventArgs
     {
         VkApi token;
 

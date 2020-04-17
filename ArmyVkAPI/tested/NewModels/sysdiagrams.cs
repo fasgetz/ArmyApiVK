@@ -1,4 +1,4 @@
-namespace tested.Models
+namespace tested.NewModels
 {
     using System;
     using System.Collections.Generic;

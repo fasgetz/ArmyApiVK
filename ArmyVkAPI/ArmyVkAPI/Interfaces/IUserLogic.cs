@@ -11,7 +11,7 @@ namespace ArmyVkAPI.Interfaces
         /// </summary>
         /// /// <param name="VK_ID">Айди пользователя ВК</param>
         /// <returns>Массив иностранных друзей</returns>
-        User[] GetForeignFriends(int VK_ID);
+        User[] GetForeignFriends(int VK_ID, int Foreign = 1);
 
 
         /// <summary>

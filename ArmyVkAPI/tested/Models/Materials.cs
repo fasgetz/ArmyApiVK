@@ -6,21 +6,20 @@ namespace tested.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class SocialStatuses
+    public partial class Materials
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public SocialStatuses()
+        public Materials()
         {
-            Users = new HashSet<Users>();
+            FoundMaterials = new HashSet<FoundMaterials>();
         }
 
-        [Key]
-        public byte IdStatus { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int Id { get; set; }
 
-        [StringLength(30)]
-        public string Name { get; set; }
+        public string Material { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Users> Users { get; set; }
+        public virtual ICollection<FoundMaterials> FoundMaterials { get; set; }
     }
 }

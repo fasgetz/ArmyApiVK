@@ -1,4 +1,4 @@
-namespace tested.Models
+namespace tested.NewModels
 {
     using System;
     using System.Collections.Generic;
@@ -6,22 +6,27 @@ namespace tested.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("CrimesType")]
-    public partial class CrimesType
+    public partial class Users
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public CrimesType()
+        public Users()
         {
-            UserCrimesCategory = new HashSet<UserCrimesCategory>();
+            Intersections = new HashSet<Intersections>();
         }
 
-        public byte Id { get; set; }
+        [Key]
+        public int IdUser { get; set; }
 
-        [Required]
-        [StringLength(50)]
-        public string Name { get; set; }
+        [StringLength(100)]
+        public string FIO { get; set; }
+
+        [StringLength(100)]
+        public string DateBirth { get; set; }
+
+        [StringLength(100)]
+        public string nationality { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<UserCrimesCategory> UserCrimesCategory { get; set; }
+        public virtual ICollection<Intersections> Intersections { get; set; }
     }
 }
